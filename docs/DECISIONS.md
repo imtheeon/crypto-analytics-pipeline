@@ -16,5 +16,6 @@ One line per choice. Newest at the bottom.
 - We compute 24h % change ourselves. CoinGecko's own figure is kept only as a cross-check.
 - Rank is hourly, not per run. A run can be missing coins.
 - Anomaly = |z| >= 3 against the coin's own trailing 7 days, current row excluded. The flag is null when there's not enough data.
+- The z-score threshold (3) lives in a one-row config view, `crypto_metrics.anomaly_config`. The SQL and the dashboard read the same value.
 - Raw keeps the full API record in a `payload` JSON column, so new fields aren't lost.
 - Two runtime dependencies for Phase 1: `requests` and `google-cloud-bigquery`. No pandas until something needs it.

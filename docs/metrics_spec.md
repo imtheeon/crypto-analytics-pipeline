@@ -43,10 +43,13 @@ Every metric used in SQL or the dashboard is defined here first. If it's not in 
 - **Formula:**
   - `z = (return_15m - mean_7d) / stddev_7d`.
   - `mean_7d` and `stddev_7d` are the `AVG` and `STDDEV_SAMP` of `return_15m` over the trailing 7 days, **current row excluded** (`RANGE BETWEEN 604800 PRECEDING AND 1 PRECEDING`). Including the current row would hide the very move we want to catch.
-  - `is_anomaly = ABS(z) >= 3`.
+  - `is_anomaly = ABS(z) >= z_threshold`. `z_threshold` is 3, read from the `crypto_metrics.anomaly_config` view ([sql/metrics/crypto_anomaly_config.sql](../sql/metrics/crypto_anomaly_config.sql)).
 - **Minimum data:** at least 96 non-null returns (one day) in the window, and `stddev_7d > 0`. Otherwise `z_score` and `is_anomaly` are null, meaning "not enough data to judge". `false` always means checked and normal.
 - **Purpose:** flags moves that are unusual for this coin. A 2% move is normal for DOGE but rare for BTC.
-- **Tuning:** the threshold of 3 and the 7-day window are starting values. If real data shows too many or too few flags, we'll change them here first and log it in DECISIONS.md.
+- **Tuning:**
+  - Change the threshold in the config view only.
+  - The 7-day window stays in the view's SQL, because BigQuery window frames only take fixed numbers, not variables.
+  - Log every change in DECISIONS.md.
 
 ## Insights box (dashboard)
 
