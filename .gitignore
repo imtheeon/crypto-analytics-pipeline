@@ -1,0 +1,28 @@
+# Secrets: never commit
+.env
+.env.*
+*.pem
+*service-account*.json
+*-sa-key*.json
+crypto-pipeline-sa*.json
+gcp-key*.json
+credentials*.json
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+
+# Local output
+data/
+*.jsonl
+*.log
+
+# Tools / OS
+graphify-out/
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
