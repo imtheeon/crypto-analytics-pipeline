@@ -12,7 +12,7 @@
 
 ## Architecture
 
-> 🚧 Diagram goes here (Phase 1, step 2).
+See [docs/architecture.md](docs/architecture.md). Column definitions are in [docs/data_dictionary.md](docs/data_dictionary.md).
 
 ## Stack
 

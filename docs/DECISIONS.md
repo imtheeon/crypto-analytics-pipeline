@@ -10,4 +10,11 @@ One line per choice. Newest at the bottom.
 - Coin list lives in `ingestion/crypto_coins.json` so it changes without a code edit.
 - No stablecoins. Their price barely moves, so they add noise to volatility and anomaly metrics.
 - Service account key stays outside the repo in `%USERPROFILE%\.gcp\`. GitHub Actions gets it from the `CRYPTO_GCP_KEY` secret.
+- `observed_at` is CoinGecko's `last_updated`, not our fetch time. Re-runs don't create fake observations.
+- All metric windows are time-based (`RANGE` on seconds), not row-based. Missed runs don't stretch a "7-day" window.
+- 15-minute returns are null across gaps over 30 minutes. A skipped run shouldn't look like a big move.
+- We compute 24h % change ourselves. CoinGecko's own figure is kept only as a cross-check.
+- Rank is hourly, not per run. A run can be missing coins.
+- Anomaly = |z| >= 3 against the coin's own trailing 7 days, current row excluded. The flag is null when there's not enough data.
+- Raw keeps the full API record in a `payload` JSON column, so new fields aren't lost.
 - Two runtime dependencies for Phase 1: `requests` and `google-cloud-bigquery`. No pandas until something needs it.
