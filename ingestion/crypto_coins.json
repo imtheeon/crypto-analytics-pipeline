@@ -1,0 +1,15 @@
+{
+  "vs_currency": "usd",
+  "coins": [
+    "bitcoin",
+    "ethereum",
+    "solana",
+    "ripple",
+    "binancecoin",
+    "cardano",
+    "dogecoin",
+    "avalanche-2",
+    "chainlink",
+    "litecoin"
+  ]
+}
