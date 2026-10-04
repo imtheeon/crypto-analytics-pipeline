@@ -18,4 +18,6 @@ One line per choice. Newest at the bottom.
 - Anomaly = |z| >= 3 against the coin's own trailing 7 days, current row excluded. The flag is null when there's not enough data.
 - The z-score threshold (3) lives in a one-row config view, `crypto_metrics.anomaly_config`. The SQL and the dashboard read the same value.
 - Raw keeps the full API record in a `payload` JSON column, so new fields aren't lost.
+- BigQuery sandbox, no billing account. Costs nothing. Tables and partitions expire after 60 days; link billing to lift that.
+- `crypto-pipeline-sa` gets `bigquery.jobUser` on the project and write access on `crypto_raw` only, not project-wide `dataEditor`.
 - Two runtime dependencies for Phase 1: `requests` and `google-cloud-bigquery`. No pandas until something needs it.
