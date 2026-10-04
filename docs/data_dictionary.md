@@ -1,6 +1,6 @@
 # Data dictionary
 
-All times are UTC. GCP project: `crypto-analytics-pipeline`. Location: US.
+All times are UTC. GCP project: `crypto-analytics-pipeline-lc`. Location: US.
 
 ## `crypto_raw.prices`
 

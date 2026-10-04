@@ -5,7 +5,7 @@ flowchart LR
     CG["CoinGecko API<br/>/coins/markets<br/>10 coins, 1 call"]
     GA["GitHub Actions<br/>every 15 min<br/>(Phase 3)"]
     PY["ingestion/<br/>crypto_ingest.py<br/>retry + backoff"]
-    subgraph BQ["BigQuery · crypto-analytics-pipeline · US"]
+    subgraph BQ["BigQuery · crypto-analytics-pipeline-lc · US"]
         RAW[("crypto_raw.prices<br/>append-only")]
         CLEAN[("crypto_clean.prices<br/>typed, deduped<br/>(Phase 2)")]
         MET[("crypto_metrics.*<br/>SQL views<br/>(Phase 2)")]
