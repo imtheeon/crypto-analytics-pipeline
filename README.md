@@ -29,7 +29,16 @@ Defined in [docs/metrics_spec.md](docs/metrics_spec.md).
 
 ## Run it locally
 
-> 🚧 Filled in once ingestion works.
+Windows PowerShell, conda env with `requirements.txt` installed:
+
+```powershell
+$env:CRYPTO_COINGECKO_API_KEY = "<CoinGecko Demo key>"
+$env:GOOGLE_APPLICATION_CREDENTIALS = "$env:USERPROFILE\.gcp\crypto-pipeline-sa.json"
+python ingestion/crypto_ingest.py
+python tests/test_crypto_ingest.py
+```
+
+Each run appends new snapshots to `crypto_raw.prices`. Running it again before CoinGecko updates adds 0 rows.
 
 ## Design decisions
 

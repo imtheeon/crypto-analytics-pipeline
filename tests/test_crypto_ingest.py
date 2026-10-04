@@ -26,7 +26,8 @@ def test_build_rows():
     assert btc["high_24h"] is None            # missing key -> None
     assert btc["market_cap_rank"] == 1
     assert btc["ingestion_id"] == "run-1"
-    assert json.loads(btc["payload"])["symbol"] == "btc"
+    assert btc["payload"]["symbol"] == "btc"
+    json.dumps(btc)                           # row must serialize for the load job
 
 
 def test_empty_response():

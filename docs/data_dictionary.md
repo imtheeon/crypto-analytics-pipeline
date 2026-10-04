@@ -6,7 +6,8 @@ All times are UTC. GCP project: `crypto-analytics-pipeline-lc`. Location: US.
 
 One row per coin per ingestion run, as received from CoinGecko `/coins/markets`. Append-only, never updated.
 - Partitioned by day on `ingested_at`, clustered by `coin_id`.
-- Re-runs are safe: the loader skips any `(coin_id, last_updated)` pair already in the table.
+- Re-runs are safe: the loader skips any `(coin_id, last_updated)` pair already loaded in the last 2 days.
+- Sandbox: partitions older than 60 days are deleted automatically. The table itself does not expire.
 
 | Column | Type | Null? | Description |
 |---|---|---|---|

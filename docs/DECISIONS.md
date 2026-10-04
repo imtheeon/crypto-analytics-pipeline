@@ -18,6 +18,8 @@ One line per choice. Newest at the bottom.
 - Anomaly = |z| >= 3 against the coin's own trailing 7 days, current row excluded. The flag is null when there's not enough data.
 - The z-score threshold (3) lives in a one-row config view, `crypto_metrics.anomaly_config`. The SQL and the dashboard read the same value.
 - Raw keeps the full API record in a `payload` JSON column, so new fields aren't lost.
-- BigQuery sandbox, no billing account. Costs nothing. Tables and partitions expire after 60 days; link billing to lift that.
+- BigQuery sandbox, no billing account. Costs nothing. On `crypto_raw.prices` the sandbox sets a 60-day *partition* expiry, not a table expiry: rows older than 60 days drop off and the table stays. Link billing to keep full history.
+- Loads use load jobs, not streaming inserts. Load jobs are free and work in the sandbox.
+- The re-run check looks back 2 days of partitions. Each check is billed at BigQuery's 10 MB minimum, about 29 GB a month at 96 runs a day, inside the 1 TB free tier. A coin stuck for more than 2 days could repeat in raw; clean dedupes it.
 - `crypto-pipeline-sa` gets `bigquery.jobUser` on the project and write access on `crypto_raw` only, not project-wide `dataEditor`.
 - Two runtime dependencies for Phase 1: `requests` and `google-cloud-bigquery`. No pandas until something needs it.
