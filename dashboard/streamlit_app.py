@@ -48,7 +48,7 @@ tok = TOKENS["light" if st.context.theme.type == "light" else "dark"]
 SERIES, SURFACE, INK2, MUTED, GRID = tok["series"], tok["surface"], tok["ink2"], tok["muted"], tok["grid"]
 
 st.html(f"""<style>
-.block-container {{ padding-top: 2rem; max-width: 1400px; }}
+.block-container {{ padding-top: 4.5rem; max-width: 1400px; }}  /* clears the 3.75rem app header and Cloud toolbar */
 [class*="st-key-card"] {{ background: {SURFACE}; }}
 .kpis {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; }}
 .kpi {{ background: {SURFACE}; border: 1px solid {GRID}; border-radius: 12px; padding: 16px 18px; }}
