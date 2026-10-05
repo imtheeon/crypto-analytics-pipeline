@@ -11,7 +11,7 @@ flowchart LR
         MET[("crypto_metrics.*<br/>SQL views")]
     end
     T{{"data tests<br/>dupes · nulls · stale"}}
-    DASH["dashboard/<br/>Streamlit + Plotly<br/>60s refresh<br/>(Phase 4)"]
+    DASH["dashboard/<br/>Streamlit + Plotly<br/>1h cache, manual refresh<br/>(Phase 4)"]
 
     GA -->|runs| PY
     CG -->|JSON| PY

@@ -8,7 +8,7 @@
 - Stores raw responses in BigQuery, then cleans and dedupes them in SQL.
 - Calculates % change, 7-day moving average, volatility, rank, and a z-score anomaly flag.
 - Runs data tests on every load. A failed test fails the run.
-- Shows it all in a Streamlit dashboard that refreshes every 60 seconds.
+- Shows it all in a Streamlit dashboard with a "last updated" time. Query results are cached for 1 hour, and a "Refresh now" button works once every 5 minutes.
 
 ## Architecture
 
@@ -49,7 +49,7 @@ cmd /c "bq query --use_legacy_sql=false < sql\tests\crypto_data_tests.sql"
 python tests/test_crypto_metrics_sql.py
 ```
 
-`sql\tests\crypto_freshness_tests.sql` is for the scheduled workflow only. Run by hand, it fails whenever the last run was over an hour ago.
+`sql\tests\crypto_freshness_tests.sql` is for the scheduled workflow only (`.github/workflows/crypto_pipeline.yml`), which runs both test files with `python tests/run_sql_tests.py`. Run by hand, it fails whenever the last run was over an hour ago.
 
 Each run appends new snapshots to `crypto_raw.prices`. Running it again before CoinGecko updates adds 0 rows.
 

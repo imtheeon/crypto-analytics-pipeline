@@ -1,0 +1,31 @@
+name: crypto-pipeline
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"  # GitHub may start scheduled runs late; freshness thresholds allow for it
+  workflow_dispatch:
+
+concurrency:
+  group: crypto-pipeline  # never two loads at once
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - uses: google-github-actions/auth@v2  # writes the key to a temp file and sets GOOGLE_APPLICATION_CREDENTIALS
+        with:
+          credentials_json: ${{ secrets.CRYPTO_GCP_KEY }}
+      - name: Ingest
+        run: python ingestion/crypto_ingest.py
+        env:
+          CRYPTO_COINGECKO_API_KEY: ${{ secrets.CRYPTO_COINGECKO_API_KEY }}
+      - name: Data and freshness tests
+        run: python tests/run_sql_tests.py sql/tests/crypto_data_tests.sql sql/tests/crypto_freshness_tests.sql
