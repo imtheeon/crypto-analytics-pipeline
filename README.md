@@ -19,7 +19,7 @@ See [docs/architecture.md](docs/architecture.md). Column definitions are in [doc
 | Layer | Tool |
 |---|---|
 | Source | CoinGecko API (Demo key) |
-| Ingestion | Python, GitHub Actions (every 15 min) |
+| Ingestion | Python, GitHub Actions, started every 15 min by a Google Apps Script timer |
 | Warehouse | BigQuery: `crypto_raw` → `crypto_clean` → `crypto_metrics` |
 | Dashboard | Streamlit + Plotly |
 
@@ -65,6 +65,19 @@ streamlit run dashboard/streamlit_app.py
 Run it from the repo root so `.streamlit/config.toml` (the theme) applies. Credentials go in `.streamlit/secrets.toml` as a `[gcp_service_account]` block (git-ignored). Without that file, it uses `GOOGLE_APPLICATION_CREDENTIALS`.
 
 The hosted app runs on Streamlit Community Cloud's free tier. It goes to sleep after a while with no visitors, and the first visit after that takes about a minute to wake it.
+
+## Scheduler
+
+GitHub's own `schedule:` trigger fired once in about 12 hours for this repo, so a Google Apps Script timer starts the workflow instead. The cron line stays in the workflow as a backup.
+
+- Code: [scheduler/crypto_pipeline_trigger.gs](scheduler/crypto_pipeline_trigger.gs), in the Apps Script project `crypto-pipeline-timer` (Google account that owns the GCP project).
+- Trigger: time-driven, every 15 minutes, failure notifications set to "Notify me immediately".
+- Token: fine-grained GitHub token `crypto-pipeline-timer`, this repo only, Actions read and write. It's stored in the project's Script Properties as `CRYPTO_GITHUB_TOKEN`, never in code. **It expires Dec 4, 2026.**
+- When it expires, the script emails "crypto-pipeline-timer: workflow dispatch failed" (HTTP 401). To renew it:
+  1. Regenerate the token on GitHub (Settings > Developer settings > Fine-grained tokens > crypto-pipeline-timer).
+  2. Paste the new value into Script Properties.
+  3. Update the date here and in DECISIONS.md.
+- An HTTP 403 "Resource not accessible by personal access token" means the token's Actions permission isn't "Read and write".
 
 ## Troubleshooting
 

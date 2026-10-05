@@ -3,7 +3,8 @@
 ```mermaid
 flowchart LR
     CG["CoinGecko API<br/>/coins/markets<br/>10 coins, 1 call"]
-    GA["GitHub Actions<br/>every 15 min<br/>(Phase 3)"]
+    AS["Apps Script timer<br/>crypto-pipeline-timer<br/>every 15 min"]
+    GA["GitHub Actions<br/>crypto-pipeline<br/>(cron as backup)"]
     PY["ingestion/<br/>crypto_ingest.py<br/>retry + backoff"]
     subgraph BQ["BigQuery · crypto-analytics-pipeline-lc · US"]
         RAW[("crypto_raw.prices<br/>append-only")]
@@ -13,6 +14,7 @@ flowchart LR
     T{{"data tests<br/>dupes · nulls · stale"}}
     DASH["dashboard/<br/>Streamlit + Plotly<br/>1h cache, manual refresh<br/>(Phase 4)"]
 
+    AS -->|workflow_dispatch| GA
     GA -->|runs| PY
     CG -->|JSON| PY
     PY -->|load job| RAW
