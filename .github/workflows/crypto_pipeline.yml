@@ -2,7 +2,7 @@ name: crypto-pipeline
 
 on:
   schedule:
-    - cron: "*/15 * * * *"  # GitHub may start scheduled runs late; freshness thresholds allow for it
+    - cron: "7,22,37,52 * * * *"  # every 15 min, off the busy :00/:15/:30/:45 slots; GitHub may still start late
   workflow_dispatch:
 
 concurrency:
