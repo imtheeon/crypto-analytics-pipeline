@@ -46,3 +46,4 @@ One line per choice. Newest at the bottom.
 - Dashboard totals and insights count only coins seen within 60 minutes of the newest data. A stale or removed coin drops out instead of being summed as current.
 - The ingest schedule runs at minutes 7, 22, 37 and 52, not `*/15`. GitHub never fired the `*/15` schedule in the first 3 hours; the busy :00/:15/:30/:45 slots get delayed or dropped most.
 - Cards without enough history show "Collecting data, available around [time]". The estimate comes from `available_around()` and assumes a run every 15 minutes.
+- The dashboard reloads `crypto_dashboard_logic` on every run. When Community Cloud pulls a new commit into a running app, it re-reads the main script but keeps imported modules cached, which caused an ImportError on a newly added name. Reproduced locally, and fixed without a reboot.

@@ -7,6 +7,7 @@ Cost:     one query per cache fill. Cache lasts 1 hour, shared by all viewers. N
           "Refresh now" clears it at most once every 5 minutes across all viewers.
 """
 import html
+import importlib
 import time
 from datetime import datetime, timezone
 
@@ -17,8 +18,14 @@ from google.api_core.exceptions import GoogleAPIError
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
-from crypto_dashboard_logic import (DAY, anomaly_count_24h, available_around, insights, is_stale, latest_per_coin,
-                                    movers, total_market_cap, usd)
+import crypto_dashboard_logic
+
+# Streamlit re-reads this script on every run but keeps imported modules cached. When Community Cloud pulls a new
+# commit into a running app, the cached logic module is the old one and new names fail to import. Reload it each
+# run so both files always come from the same commit. It's small and pure, so this costs about a millisecond.
+importlib.reload(crypto_dashboard_logic)
+from crypto_dashboard_logic import (DAY, anomaly_count_24h, available_around, insights, is_stale,  # noqa: E402
+                                    latest_per_coin, movers, total_market_cap, usd)
 
 PROJECT = "crypto-analytics-pipeline-lc"
 REFRESH_COOLDOWN_S = 300
