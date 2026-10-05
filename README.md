@@ -38,6 +38,19 @@ python ingestion/crypto_ingest.py
 python tests/test_crypto_ingest.py
 ```
 
+Deploy the views as your own gcloud user, in this order, then run the data tests. `cmd /c` avoids the BOM that PowerShell 5.1 adds when piping:
+
+```powershell
+cmd /c "bq query --use_legacy_sql=false < sql\clean\crypto_clean_prices.sql"
+cmd /c "bq query --use_legacy_sql=false < sql\metrics\crypto_anomaly_config.sql"
+cmd /c "bq query --use_legacy_sql=false < sql\metrics\crypto_metrics_prices.sql"
+cmd /c "bq query --use_legacy_sql=false < sql\metrics\crypto_rank_hourly.sql"
+cmd /c "bq query --use_legacy_sql=false < sql\tests\crypto_data_tests.sql"
+python tests/test_crypto_metrics_sql.py
+```
+
+`sql\tests\crypto_freshness_tests.sql` is for the scheduled workflow only. Run by hand, it fails whenever the last run was over an hour ago.
+
 Each run appends new snapshots to `crypto_raw.prices`. Running it again before CoinGecko updates adds 0 rows.
 
 ## Design decisions

@@ -26,10 +26,13 @@ One row per coin per ingestion run, as received from CoinGecko `/coins/markets`.
 | `last_updated` | STRING | no | CoinGecko's source timestamp, ISO 8601, kept as text. Becomes `observed_at` in clean. |
 | `payload` | JSON | no | The full API record for this coin, so fields we don't map now are not lost. |
 
-## `crypto_clean.prices` (Phase 2)
+## `crypto_clean.prices` (view)
 
 Typed and deduped: one row per `(coin_id, observed_at)`. Columns match raw, with `last_updated` cast to `observed_at TIMESTAMP` and `payload` dropped. The loader's skip check should prevent duplicates. If two overlapping runs still create one, the row with the latest `ingested_at` wins.
 
-## `crypto_metrics` views (Phase 2)
+## `crypto_metrics` views
 
-Columns follow the KPIs in [metrics_spec.md](metrics_spec.md): `return_15m`, `pct_change_24h`, `ma_7d`, `ma_7d_is_partial`, `volatility_24h`, `market_cap_rank_tracked`, `z_score`, `is_anomaly`.
+Definitions are in [metrics_spec.md](metrics_spec.md).
+- `prices`: one row per `(coin_id, observed_at)`. Clean's coin, price, market cap, volume and 24h high/low, plus `return_15m`, `pct_change_24h`, `ma_7d`, `ma_7d_is_partial`, `volatility_24h`, `z_score`, `is_anomaly`.
+- `rank_hourly`: one row per `(hour, coin_id)`. `hour`, `coin_id`, `name`, `market_cap`, `market_cap_rank_tracked`.
+- `anomaly_config`: one row, `z_threshold`.

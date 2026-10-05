@@ -7,10 +7,10 @@ flowchart LR
     PY["ingestion/<br/>crypto_ingest.py<br/>retry + backoff"]
     subgraph BQ["BigQuery · crypto-analytics-pipeline-lc · US"]
         RAW[("crypto_raw.prices<br/>append-only")]
-        CLEAN[("crypto_clean.prices<br/>typed, deduped<br/>(Phase 2)")]
-        MET[("crypto_metrics.*<br/>SQL views<br/>(Phase 2)")]
+        CLEAN[("crypto_clean.prices<br/>view, deduped")]
+        MET[("crypto_metrics.*<br/>SQL views")]
     end
-    T{{"data tests<br/>dupes · nulls · stale<br/>(Phase 2)"}}
+    T{{"data tests<br/>dupes · nulls · stale"}}
     DASH["dashboard/<br/>Streamlit + Plotly<br/>60s refresh<br/>(Phase 4)"]
 
     GA -->|runs| PY
