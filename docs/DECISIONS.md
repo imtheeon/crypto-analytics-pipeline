@@ -33,3 +33,6 @@ One line per choice. Newest at the bottom.
 - Dashboard: BigQuery results are cached for 1 hour, with no auto-refresh. It shows a "last updated" time. "Refresh now" clears the cache at most once every 5 minutes. Reason: zero cost. A 60-second auto-refresh could pass BigQuery's free 1 TB of queries a month, because every query is billed at least 10 MB. Ingestion stays every 15 minutes.
 - The per-coin freshness check takes the coin list from `crypto_coins.json` as `@coins`. A listed coin that never arrives fails, and a coin taken off the list stops being checked. `tests/run_sql_tests.py` passes the list in.
 - The workflow runs ingest, then the data and freshness tests, in one job every 15 minutes. A `concurrency` group stops a late run from overlapping the next one.
+- Billing stays unlinked. A free trial that isn't upgraded deletes the whole project after it ends plus a 30-day grace period, which is worse than the sandbox's 60-day expiry.
+- A monthly workflow, `crypto-views-refresh`, re-creates the four views to reset the sandbox's 60-day view expiry. It fails if any view still expires within 55 days.
+- So `crypto-pipeline-sa` gets `bigquery.dataEditor` on `crypto_clean` and `crypto_metrics`, on top of write access to `crypto_raw`. That lets it re-create the views. Those two datasets only hold views, so it can't change any stored data there.

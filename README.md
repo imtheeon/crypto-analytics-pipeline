@@ -38,7 +38,7 @@ python ingestion/crypto_ingest.py
 python tests/test_crypto_ingest.py
 ```
 
-Deploy the views as your own gcloud user, in this order, then run the data tests. `cmd /c` avoids the BOM that PowerShell 5.1 adds when piping:
+Deploy the views as your own gcloud user, in this order, then run the data tests. After that, the monthly `crypto-views-refresh` workflow re-deploys them so the sandbox's 60-day expiry never hits. `cmd /c` avoids the BOM that PowerShell 5.1 adds when piping:
 
 ```powershell
 cmd /c "bq query --use_legacy_sql=false < sql\clean\crypto_clean_prices.sql"
