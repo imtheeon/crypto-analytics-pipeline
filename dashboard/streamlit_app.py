@@ -17,8 +17,8 @@ from google.api_core.exceptions import GoogleAPIError
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
-from crypto_dashboard_logic import (DAY, anomaly_count_24h, insights, is_stale, latest_per_coin, movers,
-                                    total_market_cap, usd)
+from crypto_dashboard_logic import (DAY, anomaly_count_24h, available_around, insights, is_stale, latest_per_coin,
+                                    movers, total_market_cap, usd)
 
 PROJECT = "crypto-analytics-pipeline-lc"
 REFRESH_COOLDOWN_S = 300
@@ -48,6 +48,7 @@ st.html(f"""<style>
 .kpi-label {{ color: {INK2}; font-size: .8rem; letter-spacing: .04em; text-transform: uppercase; }}
 .kpi-value {{ font-family: 'JetBrains Mono', monospace; font-size: 1.7rem; font-weight: 600; margin: 6px 0 4px; }}
 .kpi-sub {{ color: {MUTED}; font-size: .85rem; }}
+.kpi-value.pending {{ font-family: inherit; font-size: 1.15rem; color: {INK2}; margin: 12px 0 8px; }}
 .chip {{ font-family: 'JetBrains Mono', monospace; font-size: .85rem; font-weight: 600; }}
 .up {{ color: {GOOD}; }} .down {{ color: {BAD}; }}
 .eyebrow {{ color: {MUTED}; font-size: .85rem; }}
@@ -103,6 +104,16 @@ def chip(v):
         return '<span class="chip kpi-sub">no 24h data yet</span>'
     arrow, cls = ("▲", "up") if v >= 0 else ("▼", "down")
     return f'<span class="chip"><span class="{cls}">{arrow}</span> {pct(v)}</span>'
+
+
+def around(ts):
+    """'14:30 UTC' today, 'Oct 6, 14:30 UTC' on another day (relative to the newest data)."""
+    return f"{ts:%H:%M} UTC" if ts.date() == newest.date() else f"{ts:%b} {ts.day}, {ts:%H:%M} UTC"
+
+
+def collecting_card(label, ready_at):
+    return f'<div class="kpi"><div class="kpi-label">{label}</div><div class="kpi-value pending">Collecting data</div>' \
+           f'<div class="kpi-sub">Available around {around(ready_at)}</div></div>'
 
 
 def ago(ts, now):
@@ -163,26 +174,30 @@ total, total_chg = total_market_cap(df)
 gainer, loser = movers(df)
 flagged, checked = anomaly_count_24h(df)
 threshold = df["z_threshold"].iloc[0]
+eta = available_around(df)
 
 
 def mover_card(label, row):
     if row is None:
-        return f'<div class="kpi"><div class="kpi-label">{label}</div><div class="kpi-value">n/a</div>' \
-               '<div class="kpi-sub">Needs 24h of history</div></div>'
+        return collecting_card(label, eta["change_24h"])
     return f'<div class="kpi"><div class="kpi-label">{label}</div><div class="kpi-value">{html.escape(row["name"])}</div>' \
            f'{chip(row["pct_change_24h"])} <span class="kpi-sub">· {usd(row["current_price"])}</span></div>'
 
 
-anomaly_value = str(flagged) if checked else "n/a"
-anomaly_sub = f"of {checked:,} checks · |z| ≥ {threshold:g}" if checked else "Checks start after 1 day of history"
+no_change = total_chg is None or pd.isna(total_chg)
+total_sub = f'<span class="kpi-sub">24h change available around {around(eta["change_24h"])}</span>' if no_change \
+    else f'{chip(total_chg)} <span class="kpi-sub">· 24h</span>'
+anomaly_card = collecting_card("Anomalies · 24h", eta["anomaly"]) if not checked else \
+    f'<div class="kpi"><div class="kpi-label">Anomalies · 24h</div><div class="kpi-value">{flagged}</div>' \
+    f'<div class="kpi-sub">of {checked:,} checks · |z| ≥ {threshold:g}</div></div>'
 st.html(f"""<div class="kpis">
-  <div class="kpi"><div class="kpi-label">Total market cap</div><div class="kpi-value">{usd(total)}</div>
-    {chip(total_chg)}{"" if total_chg is None or pd.isna(total_chg) else ' <span class="kpi-sub">· 24h</span>'}</div>
+  <div class="kpi"><div class="kpi-label">Total market cap</div><div class="kpi-value">{usd(total)}</div>{total_sub}</div>
   {mover_card("Biggest gainer · 24h", gainer)}
   {mover_card("Biggest loser · 24h", loser)}
-  <div class="kpi"><div class="kpi-label">Anomalies · 24h</div><div class="kpi-value">{anomaly_value}</div>
-    <div class="kpi-sub">{anomaly_sub}</div></div>
+  {anomaly_card}
 </div>""")
+if no_change or gainer is None or not checked:
+    st.caption("Estimated times assume a pipeline run every 15 minutes.")
 
 
 # ---------- controls ----------
@@ -215,7 +230,7 @@ with st.container(border=True, key="card-price"):
         d = window[window["coin_id"] == coin]
         st.subheader(f"{names[coin]} price", anchor=False)
         st.caption("USD, with the trailing 7-day average and anomaly flags."
-                   + (" The 7-day average is partial until 7 days of history exist."
+                   + (f" The 7-day average is partial until around {around(eta['ma_7d'])}."
                       if not d.empty and d["ma_7d_is_partial"].fillna(False).iloc[-1] else ""))
         fig = go.Figure()
         fig.add_scatter(x=d["observed_at"], y=d["current_price"], name="Price", mode="lines",
@@ -260,7 +275,8 @@ with left, st.container(border=True, key="card-vol"):
     if vol.empty:
         recent = df[df["observed_at"] > newest - DAY]
         have = int(recent.groupby("coin_id")["return_15m"].count().max())
-        st.caption(f"Standard deviation of 15-minute returns. Needs 48 returns in 24 hours; the most any coin has is {have}.")
+        st.caption(f"Collecting data, available around {around(eta['volatility'])}. Volatility needs 48 "
+                   f"returns (one per 15 minutes) in 24 hours; the most any coin has so far is {have}.")
     else:
         st.caption("Standard deviation of 15-minute returns over the last 24 hours. Not annualized.")
         fig = go.Figure(go.Bar(x=vol["volatility_24h"], y=vol["name"], orientation="h",
@@ -273,7 +289,8 @@ with right, st.container(border=True, key="card-anom"):
     st.subheader("Anomalies", anchor=False)
     found = window[window["is_anomaly"] == True].sort_values("observed_at", ascending=False)  # noqa: E712
     if window["is_anomaly"].notna().sum() == 0:
-        st.caption("Anomaly checks start once a coin has 1 day of 15-minute returns.")
+        st.caption(f"Collecting data, available around {around(eta['anomaly'])}. "
+                   "Anomaly checks need 1 day of 15-minute returns.")
     elif found.empty:
         st.caption(f"No 15-minute move reached |z| ≥ {threshold:g} in the {range_key} range.")
     else:
@@ -297,5 +314,6 @@ with st.container(border=True, key="card-insights"):
     if lines:
         st.html("".join(f'<p class="insight">{html.escape(line)}</p>' for line in lines))
     else:
-        st.caption("Insights appear once there is enough history to compute them.")
+        first = min(eta["change_24h"], eta["volatility"], eta["anomaly"])
+        st.caption(f"Collecting data. The first insights appear around {around(first)}.")
     st.caption("Each sentence is filled in from the numbers above. They describe the data and are not advice.")

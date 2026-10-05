@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dashboard"))
-from crypto_dashboard_logic import anomaly_count_24h, insights, is_stale, movers, total_market_cap  # noqa: E402
+from crypto_dashboard_logic import anomaly_count_24h, available_around, insights, is_stale, movers, total_market_cap  # noqa: E402
 
 T = pd.Timestamp("2026-10-05 12:00", tz="UTC")
 
@@ -129,6 +129,23 @@ def test_insights_edge_cases():
     assert "No unusual 15-minute moves in the last 24 hours, across 1 check." in lines, lines
 
 
+def test_available_around():
+    # two coins: an old row, a 9-hour gap, then an unbroken run every 15 minutes for 3 hours ending at T
+    times = [T - pd.Timedelta(hours=12)] + [T - pd.Timedelta(minutes=15 * i) for i in range(12, -1, -1)]
+    df = pd.DataFrame([dict(coin_id=c, observed_at=ts, return_15m=None if i < 2 else 0.001)
+                       for c in ("btc", "eth") for i, ts in enumerate(times)]).sample(frac=1, random_state=1)
+    eta = available_around(df)  # rows shuffled: BigQuery returns them in no particular order
+    streak = T - pd.Timedelta(hours=3)
+    assert eta["change_24h"] == streak + pd.Timedelta(hours=24)     # the 9-hour gap resets the clock
+    assert eta["volatility"] == T + (48 - 12) * pd.Timedelta(minutes=15)   # 12 returns so far
+    assert eta["anomaly"] == T + (97 - 12) * pd.Timedelta(minutes=15)
+    assert eta["ma_7d"] == T - pd.Timedelta(hours=12) + pd.Timedelta(days=7)  # from the first row ever
+    assert eta["trend_7d"] == streak + pd.Timedelta(days=7)
+    # an estimate is never earlier than the next run
+    late = df[df["observed_at"] >= streak]
+    assert available_around(late.assign(return_15m=0.001))["volatility"] >= T + pd.Timedelta(minutes=15)
+
+
 if __name__ == "__main__":
     test_total_market_cap()
     test_movers()
@@ -137,4 +154,5 @@ if __name__ == "__main__":
     test_insights_full()
     test_insights_skip_rules()
     test_insights_edge_cases()
+    test_available_around()
     print("ok")

@@ -45,3 +45,4 @@ One line per choice. Newest at the bottom.
 - Insights: five rules, defined in `metrics_spec.md`. A rule with too little data says nothing.
 - Dashboard totals and insights count only coins seen within 60 minutes of the newest data. A stale or removed coin drops out instead of being summed as current.
 - The ingest schedule runs at minutes 7, 22, 37 and 52, not `*/15`. GitHub never fired the `*/15` schedule in the first 3 hours; the busy :00/:15/:30/:45 slots get delayed or dropped most.
+- Cards without enough history show "Collecting data, available around [time]". The estimate comes from `available_around()` and assumes a run every 15 minutes.

@@ -68,6 +68,13 @@ Computed in Python from `crypto_metrics.prices`. "Latest" means each coin's newe
 - **Formula:** `anomalies_24h` counts rows with `is_anomaly = TRUE` and `observed_at > t - 24h`. `checked_24h` counts rows in the same window where `is_anomaly` is not null.
 - **Minimum data:** if `checked_24h` is 0, the card shows "not enough data", not 0.
 
+### Early history
+Until a card has enough data, it shows "Collecting data, available around [time]", never blank or 0. The time is an estimate that assumes a run every 15 minutes from now on, and the latest-starting coin sets it:
+- 24h metrics: 24 hours after the start of the current unbroken run of data (no gap over 30 minutes).
+- Volatility: the newest observation plus 15 minutes for each of the 48 returns still missing in the 24h window.
+- Anomaly checks: the same, counting toward 97 returns in the 7-day window (96 prior returns plus the current one).
+- 7-day average: 7 days after the first observation.
+
 ### Staleness
 - The dashboard shows a "data is stale" warning when `t` was more than 60 minutes old at the time the data was loaded. It's judged at load time, not on each view, because cached data is up to an hour old by design.
 
