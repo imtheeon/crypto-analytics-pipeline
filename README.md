@@ -53,6 +53,19 @@ python tests/test_crypto_metrics_sql.py
 
 Each run appends new snapshots to `crypto_raw.prices`. Running it again before CoinGecko updates adds 0 rows.
 
+## Dashboard
+
+Streamlit app in `dashboard/streamlit_app.py`. It reads `crypto_metrics` only, as the read-only `crypto-dashboard-sa`.
+
+```powershell
+pip install -r dashboard/requirements.txt
+streamlit run dashboard/streamlit_app.py
+```
+
+Run it from the repo root so `.streamlit/config.toml` (the theme) applies. Credentials go in `.streamlit/secrets.toml` as a `[gcp_service_account]` block (git-ignored). Without that file, it uses `GOOGLE_APPLICATION_CREDENTIALS`.
+
+The hosted app runs on Streamlit Community Cloud's free tier. It goes to sleep after a while with no visitors, and the first visit after that takes about a minute to wake it.
+
 ## Design decisions
 
 See [docs/DECISIONS.md](docs/DECISIONS.md).

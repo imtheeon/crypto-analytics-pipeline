@@ -1,0 +1,37 @@
+# Light and dark themes; viewers switch in the app's settings menu. Chart colors are the dataviz
+# reference palette's steps for each mode, validated against that mode's card surface.
+[theme]
+font = "Inter:https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+codeFont = "'JetBrains Mono':https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+headingFontWeights = [600, 600, 600, 500, 500, 500]
+baseRadius = "12px"
+buttonRadius = "8px"
+showWidgetBorder = true
+
+[theme.dark]
+primaryColor = "#2a78d6"
+backgroundColor = "#0d0d0d"
+secondaryBackgroundColor = "#1a1a19"
+textColor = "#ffffff"
+borderColor = "#2c2c2a"
+greenColor = "#0ca30c"
+redColor = "#d03b3b"
+orangeColor = "#fab219"
+chartCategoricalColors = ["#3987e5", "#d95926", "#199e70", "#c98500", "#d55181"]
+dataframeHeaderBackgroundColor = "#1a1a19"
+
+[theme.light]
+primaryColor = "#2a78d6"
+backgroundColor = "#f9f9f7"
+secondaryBackgroundColor = "#f0efec"
+textColor = "#0b0b0b"
+borderColor = "#e1e0d9"
+greenColor = "#0ca30c"
+redColor = "#d03b3b"
+orangeColor = "#fab219"
+chartCategoricalColors = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"]
+dataframeHeaderBackgroundColor = "#f0efec"
+
+[client]
+toolbarMode = "minimal"
+showErrorDetails = "none"  # public app: never show tracebacks or BigQuery error text

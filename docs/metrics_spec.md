@@ -51,6 +51,32 @@ Every metric used in SQL or the dashboard is defined here first. If it's not in 
   - The 7-day window stays in the view's SQL, because BigQuery window frames only take fixed numbers, not variables.
   - Log every change in DECISIONS.md.
 
+## Dashboard KPIs
+
+Computed in Python from `crypto_metrics.prices`. "Latest" means each coin's newest observation, counting only coins seen within 60 minutes of the newest data. A coin that stopped updating, or was taken off the coin list, drops out instead of being counted as current. The reference time `t` is the newest `observed_at` across all coins, not the wall clock, so stale data still gives consistent numbers.
+
+### 7. Total market cap: `total_market_cap`, `total_market_cap_change_24h`
+- **Formula:** `total_market_cap` is the sum of each coin's latest `market_cap`. `total_market_cap_change_24h = total_market_cap / total_24h_ago - 1`, where `total_24h_ago` sums each coin's latest `market_cap` at or before `t - 24h`.
+- **Minimum data:** the total is null if any coin's latest `market_cap` is missing, so it never shows a partial sum. The change is null if any coin's 24h-ago value is missing or more than 30 minutes older than the 24-hour mark, as in KPI 2. Comparing sums over different coin sets would be wrong.
+- **Purpose:** the size of the tracked market, and its daily move.
+
+### 8. Biggest gainer and loser (24h)
+- **Formula:** among coins whose latest observation has a non-null `pct_change_24h`, the highest is the gainer and the lowest is the loser.
+- **Minimum data:** null if no coin has a `pct_change_24h` yet.
+
+### 9. Anomaly count (24h): `anomalies_24h`, `checked_24h`
+- **Formula:** `anomalies_24h` counts rows with `is_anomaly = TRUE` and `observed_at > t - 24h`. `checked_24h` counts rows in the same window where `is_anomaly` is not null.
+- **Minimum data:** if `checked_24h` is 0, the card shows "not enough data", not 0.
+
+### Staleness
+- The dashboard shows a "data is stale" warning when `t` was more than 60 minutes old at the time the data was loaded. It's judged at load time, not on each view, because cached data is up to an hour old by design.
+
 ## Insights box (dashboard)
 
-Every sentence is built in Python from the KPI columns above. No free text from a model and no numbers that weren't calculated. Example template: "`{name}` moved `{pct_change_24h}` in 24h, its largest move of the week."
+Every sentence is built in Python from the KPI columns above. No free text from a model, no numbers that weren't calculated, no hype words, and no buy or sell advice. Every sentence carries at least one real number. A move that rounds to zero says "moved less than 0.01%", never "rose 0.00%". A rule without enough data says nothing. Rules appear in this order, with `t` as defined above:
+
+1. **Biggest mover:** the coin with the largest absolute `pct_change_24h` among the latest observations. "Solana rose 5.35% in 24 hours, the largest move of the 10 coins." Needs at least one coin with `pct_change_24h`.
+2. **Latest unusual move:** the newest row with `is_anomaly = TRUE` and `observed_at > t - 24h`. "Latest unusual move: Dogecoin fell 3.26% in 15 minutes at 23:28 UTC (z-score -7.1, threshold 3)." If none are flagged but `checked_24h > 0`: "No unusual 15-minute moves in the last 24 hours, across 960 checks." Nothing if `checked_24h = 0`.
+3. **Breadth:** only when 7 or more coins moved the same way over 24h (`pct_change_24h > 0` counts as up, `< 0` as down). "8 of 10 coins are up over 24 hours."
+4. **Most volatile coin:** the highest latest `volatility_24h`. "Solana was the most volatile coin over 24 hours: its 15-minute returns had a standard deviation of 0.65%." Needs at least one coin with `volatility_24h`.
+5. **7-day market cap trend:** `total_market_cap_change_7d`, computed as KPI 7 but with a 7-day lookback (each coin's market cap at or before `t - 7d`, at most 30 minutes before that mark, and every coin required). "The combined market cap of the 10 coins is up 3.2% over 7 days, at $2.36T." Nothing if any coin lacks a 7-day-ago value.

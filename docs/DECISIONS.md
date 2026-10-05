@@ -36,3 +36,11 @@ One line per choice. Newest at the bottom.
 - Billing stays unlinked. A free trial that isn't upgraded deletes the whole project after it ends plus a 30-day grace period, which is worse than the sandbox's 60-day expiry.
 - A monthly workflow, `crypto-views-refresh`, re-creates the four views to reset the sandbox's 60-day view expiry. It fails if any view still expires within 55 days.
 - So `crypto-pipeline-sa` gets `bigquery.dataEditor` on `crypto_clean` and `crypto_metrics`, on top of write access to `crypto_raw`. That lets it re-create the views. Those two datasets only hold views, so it can't change any stored data there.
+- The dashboard uses its own read-only service account, `crypto-dashboard-sa`. It has `bigquery.jobUser` on the project and `dataViewer` on `crypto_metrics` only. Authorized datasets do the rest: `crypto_metrics` can read `crypto_clean` and `crypto_clean` can read `crypto_raw`, both for views only. The dashboard key can't read raw or clean directly, and the authorization survives the monthly view re-creation.
+- One dashboard query loads everything the sandbox keeps (60 days) plus the z threshold. Coin and range filters work in pandas, so they never trigger a query.
+- "Refresh now" is limited globally through `st.cache_resource`, not per browser session. On a public app, anyone could otherwise keep clearing the cache.
+- The dashboard has light and dark themes and follows the viewer's setting (changeable in the app menu). Chart colors are the first five steps of the dataviz reference palette for each mode, validated on that mode's card surface. In light mode, three of those colors sit under 3:1 contrast. Direct labels, dashes, the legend and the anomaly table make up for it. Up to 5 coins are compared at once. A coin keeps its color while it stays selected.
+- The price chart shows one coin in USD with its 7-day average, or several coins as % change from the start of the range, never two y-axes.
+- The dashboard has its own `dashboard/requirements.txt` (Streamlit, Plotly, pandas, db-dtypes). The 15-minute pipeline doesn't have to install them.
+- Insights: five rules, defined in `metrics_spec.md`. A rule with too little data says nothing.
+- Dashboard totals and insights count only coins seen within 60 minutes of the newest data. A stale or removed coin drops out instead of being summed as current.
