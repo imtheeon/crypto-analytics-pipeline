@@ -66,6 +66,10 @@ Run it from the repo root so `.streamlit/config.toml` (the theme) applies. Crede
 
 The hosted app runs on Streamlit Community Cloud's free tier. It goes to sleep after a while with no visitors, and the first visit after that takes about a minute to wake it.
 
+## Troubleshooting
+
+- If the app shows an ImportError after a deploy, reboot it from Manage app.
+
 ## Design decisions
 
 See [docs/DECISIONS.md](docs/DECISIONS.md).
