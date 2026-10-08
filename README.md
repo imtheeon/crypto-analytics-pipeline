@@ -1,6 +1,6 @@
 # Crypto Analytics Pipeline
 
-> ✍️ **[YOUR WORDS]** One or two sentences. What this is and why you built it.
+A scheduled data pipeline: it pulls prices for 10 coins from CoinGecko every 15 minutes into BigQuery, cleans and tests the data in SQL, and shows the results in a Streamlit dashboard.
 
 ## What it does
 
